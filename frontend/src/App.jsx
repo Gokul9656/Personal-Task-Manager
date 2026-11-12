@@ -35,7 +35,8 @@ function App() {
         title: title,
         description: description,
         dueDate: dueDate,
-        status: 'Pending'
+        status: 'Pending',
+        createdAt: new Date().toISOString()
       }
 
       setTasks([...tasks, newTask])
@@ -229,6 +230,7 @@ return (
             <div className="task-item" key={task.id}>
               <h3>{task.title}</h3>
               <p>{task.description}</p>
+              <p>Created: {new Date(task.createdAt).toLocaleDateString()}</p>
               <p>
                 Deadline: {getDeadlineText(task)}
               </p>
