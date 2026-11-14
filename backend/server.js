@@ -1,4 +1,5 @@
 const express = require('express')
+const db = require('./db')
 const app = express()
 app.use(express.json())
 const PORT = 5000
@@ -9,43 +10,73 @@ app.get('/', (req, res) => {
 })
 
 app.get('/api/tasks', (req, res) => {
-  res.json(tasks)
+  const sql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks'
+  db.query(sql, (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: err.message })
+    }
+    res.json(results)
+  })
 })
 
 app.post('/api/tasks', (req, res) => {
-    const newTask = {
-    id: Date.now(),
-    title: req.body.title,
-    description: req.body.description,
-    dueDate: req.body.dueDate,
-    status: 'Pending',
-    createdAt: new Date().toISOString()
+  const { title, description, dueDate } = req.body
+  if (!title || !title.trim()) {
+    return res.status(400).json({ message: 'Title is required' })
   }
-
-  tasks.push(newTask)
-  res.status(201).json(newTask)
+  const sql = 'INSERT INTO tasks (title, description, due_date) VALUES (?, ?, ?)'
+  const values = [title.trim(), description || null, dueDate || null]
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: err.message })
+    }
+  const selectSql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ?'
+  db.query(selectSql, [result.insertId], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ message: err.message })
+    }
+    res.status(201).json(rows[0])
+  })
+})
 })
 
 app.put('/api/tasks/:id', (req, res) => {
   const taskId = Number(req.params.id)
-  const task = tasks.find((task) => task.id === taskId)
-  if (!task) {
-    return res.status(404).json({ message: 'Task not found' })
+  const { title, description, dueDate, status } = req.body
+  if (!title || !title.trim()) {
+    return res.status(400).json({ message: 'Title is required' })
   }
-  task.title = req.body.title
-  task.description = req.body.description
-  task.dueDate = req.body.dueDate
-  res.json(task)
+  const sql = 'UPDATE tasks SET title = ?, description = ?, due_date = ?, status = ? WHERE id = ?'
+  const values = [title.trim(), description || null, dueDate || null, status, taskId]
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: err.message })
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+    const selectSql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ?'
+    db.query(selectSql, [taskId], (err, rows) => {
+      if (err) {
+        return res.status(500).json({ message: err.message })
+      }
+      res.json(rows[0])
+    })
+  })
 })
 
 app.delete('/api/tasks/:id', (req, res) => {
   const taskId = Number(req.params.id)
-  const taskIndex = tasks.findIndex((task) => task.id === taskId)
-  if (taskIndex === -1) {
-    return res.status(404).json({ message: 'Task not found' })
-  }
-  const deletedTask = tasks.splice(taskIndex, 1)[0]
-  res.json({ message: 'Task deleted successfully', task: deletedTask })
+  const sql = 'DELETE FROM tasks WHERE id = ?'
+  db.query(sql, [taskId], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: err.message })
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Task not found' })
+    }
+    res.json({ message: 'Task deleted successfully' })
+  })
 })
 
 app.listen(PORT, () => {
