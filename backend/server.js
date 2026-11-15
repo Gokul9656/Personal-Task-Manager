@@ -3,7 +3,9 @@ const db = require('./db')
 const app = express()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const cors = require('cors')
 
+app.use(cors({ origin: 'http://localhost:5173' }))
 app.use(express.json())
 const PORT = 5000
 let tasks = []

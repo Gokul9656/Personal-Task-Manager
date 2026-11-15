@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 
 function App() {
@@ -9,37 +9,134 @@ function App() {
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [filter, setFilter] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
+  const [user, setUser] = useState(null)
+  const [authMode, setAuthMode] = useState('login')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authName, setAuthName] = useState('')
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [token, setToken] = useState(sessionStorage.getItem('token'))
+  const [authMessage, setAuthMessage] = useState('')
 
-  function handleSubmit(event) {
+  useEffect(() => {
+    if (!token) {
+      setTasks([])
+      return
+    }
+    async function fetchTasks() {
+      try {
+        const response = await fetch('http://localhost:5000/api/tasks', { method: 'GET', headers: { Authorization: `Bearer ${token}` } })
+        if (!response.ok) {
+          throw new Error(`Failed to fetch tasks:`)
+        }
+        const data = await response.json()
+        setTasks(data)
+      } catch (error) {
+        console.error('Error fetching tasks:', error)
+      }
+    }
+
+    fetchTasks()
+  }, [token])
+
+  async function handleAuthSubmit(event) {
+    event.preventDefault()
+    setAuthLoading(true)
+    setAuthMessage('')
+
+    const endpoint = authMode === 'register' ? 'api/register' : 'api/login'
+    const requestBody = authMode === 'register' ? { name: authName, email: authEmail, password: authPassword } : { email: authEmail, password: authPassword }
+    
+    try {
+      const response = await fetch(`http://localhost:5000/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.message || 'Authentication failed')
+      }
+      if (authMode === 'register') {
+        setAuthMessage('Registration successful! Please log in.')
+        setAuthMode('login')
+        setAuthName('')
+        setAuthPassword('')
+      } else {
+        sessionStorage.setItem('token', data.token)
+        setToken(data.token)
+        setUser(data.user)
+        setAuthPassword('')
+        setAuthMessage('Login successful!')
+      } 
+    } catch (error) {
+      setAuthMessage(error.message)
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem('token')
+    setToken(null)
+    setUser(null)
+    setTasks([])
+    setAuthMessage('')
+    setAuthEmail('')
+    setAuthPassword('')
+    setAuthName('')
+  }
+
+  async function handleSubmit(event) {
     event.preventDefault()
 
     if (editingTaskId !== null) {
-      const updatedTasks = tasks.map((task) => {
-        if (task.id === editingTaskId) {
-          return {
-            ...task,
+      try {
+        const currentTask = tasks.find((task) => task.id === editingTaskId)
+        const response = await fetch(`http://localhost:5000/api/tasks/${editingTaskId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
             title: title,
             description: description,
-            dueDate: dueDate
-          }
+            dueDate: dueDate,
+            status: currentTask.status
+          })
+        })
+        if (!response.ok) {
+          throw new Error(`Failed to update task:`)
         }
-
-        return task
-      })
-
-      setTasks(updatedTasks)
-      setEditingTaskId(null)
-    } else {
-      const newTask = {
-        id: Date.now(),
-        title: title,
-        description: description,
-        dueDate: dueDate,
-        status: 'Pending',
-        createdAt: new Date().toISOString()
+        const updatedTask = await response.json()
+        setTasks((previousTasks) =>
+          previousTasks.map((task) => (task.id === editingTaskId ? updatedTask : task))
+        )
+        setEditingTaskId(null)
+      } catch (error) {
+        console.error('Error updating task:', error)
+        return
       }
-
-      setTasks([...tasks, newTask])
+    } else {
+      try {
+        const response = await fetch('http://localhost:5000/api/tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ title: title, description: description, dueDate: dueDate })
+        })
+        if (!response.ok) {
+          throw new Error(`Failed to add task:`)
+        }
+        const newTask = await response.json()
+        setTasks((previousTasks) => [...previousTasks, newTask])
+      } catch (error) {
+        console.error('Error adding task:', error)
+        return
+      }
     }
 
     setTitle('')
@@ -47,27 +144,51 @@ function App() {
     setDueDate('')
   }
 
-  function toggleTaskStatus(taskId) {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        return {
-          ...task,
-          status: task.status === 'Pending' ? 'Completed' : 'Pending'
-        }
+  async function toggleTaskStatus(taskId) {
+    try {
+      const currentTask = tasks.find((task) => task.id === taskId)
+      const updatedStatus = currentTask.status === 'Pending' ? 'Completed' : 'Pending'
+      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: currentTask.title,
+          description: currentTask.description,
+          dueDate: currentTask.dueDate,
+          status: updatedStatus
+        })
+      })
+      if (!response.ok) {
+        throw new Error(`Failed to update task status:`)
       }
-
-      return task
-    })
-
-
-
-    setTasks(updatedTasks)
+      const updatedTask = await response.json()
+      setTasks((previousTasks) =>
+        previousTasks.map((task) => (task.id === taskId ? updatedTask : task))
+      )
+    } catch (error) {
+      console.error('Error updating task status:', error)
+    }
   }
 
-  function deleteTask(taskId) {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId)
-
-    setTasks(updatedTasks)
+  async function deleteTask(taskId) {
+    try {
+      const response = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      if (!response.ok) {
+        throw new Error(`Failed to delete task:`)
+      }
+      setTasks((previousTasks) => previousTasks.filter((task) => task.id !== taskId))
+    } catch (error) {
+      console.error('Error deleting task:', error)
+    }
+  
   }
 
   function editTask(task) {
