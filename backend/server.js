@@ -37,19 +37,19 @@ app.get('/api/tasks', authenticateToken, (req, res) => {
   })
 })
 
-app.post('/api/tasks', (req, res) => {
+app.post('/api/tasks', authenticateToken, (req, res) => {
   const { title, description, dueDate } = req.body
   if (!title || !title.trim()) {
     return res.status(400).json({ message: 'Title is required' })
   }
-  const sql = 'INSERT INTO tasks (title, description, due_date) VALUES (?, ?, ?)'
-  const values = [title.trim(), description || null, dueDate || null]
+  const sql = 'INSERT INTO tasks (title, description, due_date, user_id) VALUES (?, ?, ?, ?)'
+  const values = [title.trim(), description || null, dueDate || null, req.user.id]
   db.query(sql, values, (err, result) => {
     if (err) {
       return res.status(500).json({ message: err.message })
     }
-  const selectSql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ?'
-  db.query(selectSql, [result.insertId], (err, rows) => {
+  const selectSql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ? AND user_id = ?'
+  db.query(selectSql, [result.insertId, req.user.id], (err, rows) => {
     if (err) {
       return res.status(500).json({ message: err.message })
     }
@@ -58,14 +58,14 @@ app.post('/api/tasks', (req, res) => {
 })
 })
 
-app.put('/api/tasks/:id', (req, res) => {
+app.put('/api/tasks/:id', authenticateToken, (req, res) => {
   const taskId = Number(req.params.id)
   const { title, description, dueDate, status } = req.body
   if (!title || !title.trim()) {
     return res.status(400).json({ message: 'Title is required' })
   }
-  const sql = 'UPDATE tasks SET title = ?, description = ?, due_date = ?, status = ? WHERE id = ?'
-  const values = [title.trim(), description || null, dueDate || null, status, taskId]
+  const sql = 'UPDATE tasks SET title = ?, description = ?, due_date = ?, status = ? WHERE id = ? AND user_id = ?'
+  const values = [title.trim(), description || null, dueDate || null, status, taskId, req.user.id]
   db.query(sql, values, (err, result) => {
     if (err) {
       return res.status(500).json({ message: err.message })
@@ -73,20 +73,21 @@ app.put('/api/tasks/:id', (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Task not found' })
     }
-    const selectSql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ?'
-    db.query(selectSql, [taskId], (err, rows) => {
+    const selectSql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ? AND user_id = ?'
+    db.query(selectSql, [taskId, req.user.id], (err, rows) => {
       if (err) {
         return res.status(500).json({ message: err.message })
       }
+      
       res.json(rows[0])
     })
   })
 })
 
-app.delete('/api/tasks/:id', (req, res) => {
+app.delete('/api/tasks/:id', authenticateToken, (req, res) => {
   const taskId = Number(req.params.id)
-  const sql = 'DELETE FROM tasks WHERE id = ?'
-  db.query(sql, [taskId], (err, result) => {
+  const sql = 'DELETE FROM tasks WHERE id = ? AND user_id = ?'
+  db.query(sql, [taskId, req.user.id], (err, result) => {
     if (err) {
       return res.status(500).json({ message: err.message })
     }
