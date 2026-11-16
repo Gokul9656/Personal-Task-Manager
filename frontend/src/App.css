@@ -1,36 +1,357 @@
-.app {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
+/* 1. Global styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: #f4f6fb;
+  color: #1e293b;
+}
+
+/* 2. Main application container */
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 35px 25px;
+  min-height: 100vh;
+}
+
+/* 3. Header */
 
 header {
   margin-bottom: 30px;
 }
 
 header h1 {
-  color: #333;
+  color: #1e293b;
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 header p {
-  color: #666;
+  color: #64748b;
+  font-size: 15px;
 }
 
+/* 4. Main layout */
+
 main {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.7fr);
+  gap: 25px;
+  align-items: start;
 }
+
+/* 5. Common card styling */
 
 .add-task,
 .task-list {
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #fff;
+  padding: 25px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background-color: #ffffff;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
 }
 
+/* 6. Section headings */
+
 h2 {
-  color: #333;
+  color: #1e293b;
+  font-size: 21px;
+  font-weight: 650;
+  margin-bottom: 20px;
+}
+
+/* 7. Form groups */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* 8. Input fields and text areas */
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* 9. Button styling */
+
+button {
+  padding: 11px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4f46e5;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+button:hover {
+  background-color: #4338ca;
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  background-color: #a5b4fc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 10. Form layout */
+.add-task form {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.add-task form button {
+  align-self: center;
+  margin-top: 5px;
+}
+
+/* 13. Individual task cards */
+.task-item {
+  padding: 20px;
+  margin-bottom: 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #ffffff;
+  transition: box-shadow 0.2s;
+}
+
+.task-item:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.task-item h3 {
+  color: #1e293b;
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+
+.task-item p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+/* 14. Dashboard statistics */
+.task-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.task-stats div {
+  padding: 20px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.task-stats h3 {
+  font-size: 28px;
+  color: #4f46e5;
+  margin-bottom: 8px;
+}
+
+.task-stats p {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* 15. Search bar */
+.search-box {
+  margin-bottom: 18px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 10px;
+  background-color: #f8fafc;
+}
+
+.search-box input:focus {
+  background-color: #ffffff;
+}
+
+/* 16. Active filter button */
+.task-filters button {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+
+.task-filters button:hover {
+  background-color: #cbd5e1;
+}
+
+.task-filters button.active {
+  background-color: #4f46e5;
+  color: #ffffff;
+}
+
+.task-filters button.active:hover {
+  background-color: #4338ca;
+}
+
+/* 17. Date picker calendar icon */
+input[type="date"] {
+  color-scheme: light;
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+  filter: invert(25%) sepia(45%) saturate(1500%) hue-rotate(210deg);
+}
+
+/* 18. Responsive design for mobile devices */
+@media (max-width: 600px) {
+  .app {
+    padding: 20px 12px;
+  }
+
+  header h1 {
+    font-size: 24px;
+  }
+
+  .add-task,
+  .task-list {
+    padding: 16px;
+  }
+
+  .task-stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .task-stats div {
+    padding: 14px;
+  }
+
+  .task-item {
+    padding: 15px;
+  }
+
+  .task-item button {
+    margin-bottom: 8px;
+  }
+}
+
+/* PROFESSIONAL DASHBOARD HEADER */
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 30px;
+
+    padding: 25px 30px;
+    border-radius: 15px;
+
+    background: linear-gradient(
+        115deg,
+        #102a56,
+        #174ea6,
+        #2563eb
+    );
+
+    box-shadow: 0 8px 24px rgba(15, 45, 100, 0.2);
+}
+
+.header-title h1 {
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.header-title p {
+    color: #e0ecff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logout-btn {
+    background: #ffffff;
+    color: #174ea6;
+    padding: 11px 22px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    background: #e0ecff;
+    color: #102a56;
+    transform: translateY(-2px);
+}
+
+.task-message {
+    width: 100%;
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
 }

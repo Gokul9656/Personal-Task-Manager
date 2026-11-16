@@ -17,6 +17,7 @@ function App() {
   const [authPassword, setAuthPassword] = useState('')
   const [token, setToken] = useState(sessionStorage.getItem('token'))
   const [authMessage, setAuthMessage] = useState('')
+  const [taskMessage, setTaskMessage] = useState('')
 
   useEffect(() => {
     if (!token) {
@@ -58,6 +59,7 @@ function App() {
         setTasks(data)
       } catch (error) {
         console.error('Error fetching tasks:', error)
+        setTaskMessage('Failed to load tasks. Please try again later.')
       }
     }
 
@@ -95,7 +97,8 @@ function App() {
         setAuthMessage('Login successful!')
       } 
     } catch (error) {
-      setAuthMessage(error.message)
+        console.error('Authentication error:', error)
+        setAuthMessage(error.message === 'Failed to fetch' ? 'Unable to connect to server. Please try again later.' : error.message)
     } finally {
       setAuthLoading(false)
     }
@@ -110,10 +113,12 @@ function App() {
     setAuthEmail('')
     setAuthPassword('')
     setAuthName('')
+    setTaskMessage('')
   }
 
   async function handleSubmit(event) {
     event.preventDefault()
+    setTaskMessage('')
 
     if (editingTaskId !== null) {
       try {
@@ -139,8 +144,10 @@ function App() {
           previousTasks.map((task) => (task.id === editingTaskId ? updatedTask : task))
         )
         setEditingTaskId(null)
+        setTaskMessage('Task updated successfully!')
       } catch (error) {
         console.error('Error updating task:', error)
+        setTaskMessage('Failed to update task.')
         return
       }
     } else {
@@ -158,8 +165,10 @@ function App() {
         }
         const newTask = await response.json()
         setTasks((previousTasks) => [...previousTasks, newTask])
+        setTaskMessage('Task added successfully!')
       } catch (error) {
         console.error('Error adding task:', error)
+        setTaskMessage('Failed to add task.')
         return
       }
     }
@@ -170,6 +179,7 @@ function App() {
   }
 
   async function toggleTaskStatus(taskId) {
+    setTaskMessage('')
     try {
       const currentTask = tasks.find((task) => task.id === taskId)
       const updatedStatus = currentTask.status === 'Pending' ? 'Completed' : 'Pending'
@@ -187,18 +197,22 @@ function App() {
         })
       })
       if (!response.ok) {
-        throw new Error(`Failed to update task status:`)
+        throw new Error(`Failed to update task status`)
       }
       const updatedTask = await response.json()
       setTasks((previousTasks) =>
         previousTasks.map((task) => (task.id === taskId ? updatedTask : task))
+      
       )
+      setTaskMessage('Task status updated successfully!')
     } catch (error) {
       console.error('Error updating task status:', error)
+      setTaskMessage('Failed to update task status.')
     }
   }
 
   async function deleteTask(taskId) {
+    setTaskMessage('')
     try {
       const response = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
         method: 'DELETE',
@@ -210,8 +224,10 @@ function App() {
         throw new Error(`Failed to delete task:`)
       }
       setTasks((previousTasks) => previousTasks.filter((task) => task.id !== taskId))
+      setTaskMessage('Task deleted successfully!')
     } catch (error) {
       console.error('Error deleting task:', error)
+      setTaskMessage('Failed to delete task.')
     }
   
   }
@@ -360,12 +376,17 @@ function App() {
 
 return (
   <div className="app">
-    <header>
-      <h1>Personal Task Manager</h1>
-      <p>Welcome, {user?.name}!</p>
-      <button type="button" onClick={handleLogout}>
-        Logout
-      </button>
+    <header className="dashboard-header">
+      <div className="header-title">
+        <h1>PERSONAL TASK MANAGER</h1>
+        <p>Welcome, {user?.name}!</p>
+      </div>
+      <div className="header-actions">
+        <button type="button" onclick={handleLogout} className="logout-btn">
+          Logout
+        </button>
+      </div>
+      {taskMessage && (<p className="task-message">{taskMessage}</p>)}
     </header>
 
     <main>
@@ -438,18 +459,29 @@ return (
         </div>
 
         <div className="task-filters">
-          <button type="button" onClick={() => setFilter('All')}>
+          <button
+            type="button"
+            className={filter === 'All' ? 'active' : ''}
+            onClick={() => setFilter('All')}
+          >
             All
           </button>
-
-          <button type="button" onClick={() => setFilter('Pending')}>
+          <button
+            type="button"
+            className={filter === 'Pending' ? 'active' : ''}
+            onClick={() => setFilter('Pending')}
+          >
             Pending
           </button>
-
-          <button type="button" onClick={() => setFilter('Completed')}>
+          <button
+            type="button"
+            className={filter === 'Completed' ? 'active' : ''}
+            onClick={() => setFilter('Completed')}
+          >
             Completed
           </button>
         </div>
+        
         {tasks.length === 0 ? (
           <p>No tasks available. Add a new task to get started!</p>
         ) : filteredTasks.length === 0 ? (
