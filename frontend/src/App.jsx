@@ -23,9 +23,34 @@ function App() {
       setTasks([])
       return
     }
+
+    async function fetchUser() {
+      try {
+        const response = await fetch('http://localhost:5000/api/me',{
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (response.status === 401 || response.status === 403) {
+          handleLogout()
+          return
+        }
+        if (!response.ok) {
+          throw new Error(`Failed to fetch user:`)
+        }
+        const data = await response.json()
+        setUser(data.user)
+      } catch (error) {
+        console.error('Error fetching user:', error)
+      }
+    }
+    fetchUser()
+
     async function fetchTasks() {
       try {
         const response = await fetch('http://localhost:5000/api/tasks', { method: 'GET', headers: { Authorization: `Bearer ${token}` } })
+        if (response.status === 401 || response.status === 403) {
+          handleLogout()
+          return
+        }
         if (!response.ok) {
           throw new Error(`Failed to fetch tasks:`)
         }
@@ -216,7 +241,6 @@ function App() {
 
     const today = new Date()
     const dueDate = new Date(task.dueDate)
-    Date(task.dueDate)
 
     const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
     const dueDateUTC = Date.UTC(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate())
@@ -252,12 +276,96 @@ function App() {
       return 0
     })
 
+  if (!token) {
+  return (
+    <div className="app">
+      <header>
+        <h1>Personal Task Manager</h1>
+        <p>Organise your tasks and stay productive.</p>
+      </header>
+
+      <main>
+        <section className="add-task">
+          <h2>
+            {authMode === 'login' ? 'Login' : 'Create an Account'}
+          </h2>
+
+          <form onSubmit={handleAuthSubmit}>
+            {authMode === 'register' && (
+              <div className="form-group">
+                <label>Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={authName}
+                  onChange={(event) => setAuthName(event.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={authEmail}
+                onChange={(event) => setAuthEmail(event.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                value={authPassword}
+                onChange={(event) => setAuthPassword(event.target.value)}
+                required
+              />
+            </div>
+
+            <button type="submit" disabled={authLoading}>
+              {authLoading
+                ? 'Please wait...'
+                : authMode === 'login'
+                  ? 'Login'
+                  : 'Register'}
+            </button>
+          </form>
+
+          {authMessage && <p>{authMessage}</p>}
+
+          <p>
+            {authMode === 'login'
+              ? "Don't have an account?"
+              : 'Already have an account?'}
+          </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMode(authMode === 'login' ? 'register' : 'login')
+              setAuthMessage('')
+            }}
+          >
+            {authMode === 'login' ? 'Register here' : 'Login here'}
+          </button>
+        </section>
+      </main>
+    </div>
+  )
+}
 
 return (
   <div className="app">
     <header>
       <h1>Personal Task Manager</h1>
-      <p>Organise your tasks and stay productive.</p>
+      <p>Welcome, {user?.name}!</p>
+      <button type="button" onClick={handleLogout}>
+        Logout
+      </button>
     </header>
 
     <main>

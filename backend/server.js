@@ -29,6 +29,18 @@ function authenticateToken(req, res, next) {
   }
 }
 
+app.get('/api/me', authenticateToken, (req, res) => {
+  db.query('SELECT id, name, email FROM users WHERE id = ?', [req.user.id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Database error' })
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+    res.json({ user: results[0] })
+  })
+})
+
 app.get('/api/tasks', authenticateToken, (req, res) => {
   const sql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE user_id = ?'
   db.query(sql, [req.user.id], (err, results) => {
