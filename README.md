@@ -55,29 +55,36 @@ The application provides a dashboard with task statistics, search functionality,
 
 ## Project Structure
 
+```text
 Personal-Task-Manager/
-│
 ├── backend/
-│ ├── server.js
-│ ├── db.js
-│ ├── package.json
-│ ├── package-lock.json
-│ └── .env.example
+│   ├── server.js
+│   ├── db.js
+│   ├── package.json
+│   ├── package-lock.json
+│   └── .env.example
 │
 ├── frontend/
-│ ├── public/
-│ ├── src/
-│ │ ├── App.jsx
-│ │ ├── App.css
-│ │ ├── index.css
-│ │ └── main.jsx
-│ ├── index.html
-│ ├── package.json
-│ └── package-lock.json
+│   ├── public/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── package.json
+│   └── package-lock.json
+│
+├── screenshots/
+│   ├── login.png
+│   ├── register.png
+│   ├── dashboard.png
+│   └── add-task.png
 │
 ├── .gitignore
 ├── .prettierrc
 └── README.md
+```
 
 ## Database Structure
 
