@@ -86,9 +86,48 @@ Personal-Task-Manager/
 └── README.md
 ```
 
-## Database Structure
+### Database Setup
 
-The application uses MySQL to store user account information and task details.
+Create the database and select it:
+
+```sql
+CREATE DATABASE personal_task_manager;
+USE personal_task_manager;
+```
+
+Create the Users table:
+
+```sql
+CREATE TABLE users (
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY unique_email (email)
+);
+```
+
+Create the Tasks table:
+
+```sql
+CREATE TABLE tasks (
+    id INT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    due_date DATE DEFAULT NULL,
+    status ENUM('Pending', 'Completed') DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INT NOT NULL,
+    PRIMARY KEY (id),
+    KEY fk_tasks_user (user_id),
+    CONSTRAINT fk_tasks_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+```
 
 ### 1. Users Table
 
