@@ -243,3 +243,17 @@ All 41 manually performed test cases passed during final testing.
 ### Add Task
 
 ![Add Task](screenshots/add-task.png)
+
+## Future Enhancements
+
+- Dark Mode
+- Forgot Password functionality
+- Email OTP verification
+- Task priority and category management
+- Task reminders and notifications
+
+## Author
+
+**H Gokul Menon**
+
+- GitHub: [@Gokul9656](https://github.com/Gokul9656)
