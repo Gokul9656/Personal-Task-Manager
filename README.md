@@ -27,6 +27,7 @@ The application provides a dashboard with task statistics, search functionality,
 ## Technology Stack
 
 ### Frontend
+
 - React.js – Building the user interface
 - Vite – Frontend development and build tool
 - HTML5 – Application structure
@@ -34,16 +35,19 @@ The application provides a dashboard with task statistics, search functionality,
 - JavaScript – Application functionality
 
 ### Backend
+
 - Node.js – JavaScript runtime environment
 - Express.js – Backend API development
 - JWT (JSON Web Token) – User authentication
 - bcrypt – Password hashing
 
 ### Database
+
 - MySQL – Storing user accounts and task information
 - mysql2 – Connecting the backend to MySQL
 
 ### Development Tools
+
 - Visual Studio Code – Code editor
 - Git – Version control
 - GitHub – Source code hosting
@@ -54,22 +58,22 @@ The application provides a dashboard with task statistics, search functionality,
 Personal-Task-Manager/
 │
 ├── backend/
-│   ├── server.js
-│   ├── db.js
-│   ├── package.json
-│   ├── package-lock.json
-│   └── .env.example
+│ ├── server.js
+│ ├── db.js
+│ ├── package.json
+│ ├── package-lock.json
+│ └── .env.example
 │
 ├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── index.css
-│   │   └── main.jsx
-│   ├── index.html
-│   ├── package.json
-│   └── package-lock.json
+│ ├── public/
+│ ├── src/
+│ │ ├── App.jsx
+│ │ ├── App.css
+│ │ ├── index.css
+│ │ └── main.jsx
+│ ├── index.html
+│ ├── package.json
+│ └── package-lock.json
 │
 ├── .gitignore
 ├── .prettierrc
@@ -83,26 +87,26 @@ The application uses MySQL to store user account information and task details.
 
 Stores registered user information.
 
-| Column | Description |
-|---|---|
-| id | Unique user ID |
-| name | User's name |
-| email | User's email address |
+| Column   | Description            |
+| -------- | ---------------------- |
+| id       | Unique user ID         |
+| name     | User's name            |
+| email    | User's email address   |
 | password | Bcrypt-hashed password |
 
 ### 2. Tasks Table
 
 Stores tasks created by users.
 
-| Column | Description |
-|---|---|
-| id | Unique task ID |
-| title | Task title |
-| description | Optional task description |
-| due_date | Optional task deadline |
-| status | Pending or Completed |
-| created_at | Task creation timestamp |
-| user_id | ID of the user who owns the task |
+| Column      | Description                      |
+| ----------- | -------------------------------- |
+| id          | Unique task ID                   |
+| title       | Task title                       |
+| description | Optional task description        |
+| due_date    | Optional task deadline           |
+| status      | Pending or Completed             |
+| created_at  | Task creation timestamp          |
+| user_id     | ID of the user who owns the task |
 
 ### Database Relationship
 
@@ -221,4 +225,21 @@ All 41 manually performed test cases passed during final testing.
 - Registration and login inputs are validated.
 - Environment variables are used for database configuration.
 - Sensitive configuration files are excluded from Git using `.gitignore`.
--
+
+## Application Screenshots
+
+### Login Page
+
+![Login Page](screenshots/login.png)
+
+### Registration Page
+
+![Registration Page](screenshots/register.png)
+
+### Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+### Add Task
+
+![Add Task](screenshots/add-task.png)
