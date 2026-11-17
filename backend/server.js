@@ -42,7 +42,8 @@ app.get('/api/me', authenticateToken, (req, res) => {
 })
 
 app.get('/api/tasks', authenticateToken, (req, res) => {
-  const sql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE user_id = ?'
+  const sql =
+    'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE user_id = ?'
   db.query(sql, [req.user.id], (err, results) => {
     if (err) {
       return res.status(500).json({ message: err.message })
@@ -62,14 +63,15 @@ app.post('/api/tasks', authenticateToken, (req, res) => {
     if (err) {
       return res.status(500).json({ message: err.message })
     }
-  const selectSql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ? AND user_id = ?'
-  db.query(selectSql, [result.insertId, req.user.id], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ message: err.message })
-    }
-    res.status(201).json(rows[0])
+    const selectSql =
+      'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ? AND user_id = ?'
+    db.query(selectSql, [result.insertId, req.user.id], (err, rows) => {
+      if (err) {
+        return res.status(500).json({ message: err.message })
+      }
+      res.status(201).json(rows[0])
+    })
   })
-})
 })
 
 app.put('/api/tasks/:id', authenticateToken, (req, res) => {
@@ -78,7 +80,8 @@ app.put('/api/tasks/:id', authenticateToken, (req, res) => {
   if (!title || !title.trim()) {
     return res.status(400).json({ message: 'Title is required' })
   }
-  const sql = 'UPDATE tasks SET title = ?, description = ?, due_date = ?, status = ? WHERE id = ? AND user_id = ?'
+  const sql =
+    'UPDATE tasks SET title = ?, description = ?, due_date = ?, status = ? WHERE id = ? AND user_id = ?'
   const values = [title.trim(), description || null, dueDate || null, status, taskId, req.user.id]
   db.query(sql, values, (err, result) => {
     if (err) {
@@ -87,12 +90,13 @@ app.put('/api/tasks/:id', authenticateToken, (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Task not found' })
     }
-    const selectSql = 'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ? AND user_id = ?'
+    const selectSql =
+      'SELECT id, title, description, DATE_FORMAT(due_date, "%Y-%m-%d") AS dueDate, status, created_at AS createdAt FROM tasks WHERE id = ? AND user_id = ?'
     db.query(selectSql, [taskId, req.user.id], (err, rows) => {
       if (err) {
         return res.status(500).json({ message: err.message })
       }
-      
+
       res.json(rows[0])
     })
   })
@@ -114,31 +118,41 @@ app.delete('/api/tasks/:id', authenticateToken, (req, res) => {
 
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body
-  if (typeof name !== 'string' || !name.trim() || typeof email !== 'string' || !email.trim() || typeof password !== 'string' || !password)
-  return res.status(400).json({ message: 'Name, email, and password are required' })
+  if (
+    typeof name !== 'string' ||
+    !name.trim() ||
+    typeof email !== 'string' ||
+    !email.trim() ||
+    typeof password !== 'string' ||
+    !password
+  )
+    return res.status(400).json({ message: 'Name, email, and password are required' })
 
-if (password.length < 8) {
-  return res.status(400).json({ message: 'Password must be at least 8 characters long' })
-}
-try {
-  const hashedPassword = await bcrypt.hash(password, 10)
-  const sql = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)'
-  const values = [name.trim(), email.trim().toLowerCase(), hashedPassword]
+  if (password.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters long' })
+  }
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10)
+    const sql = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)'
+    const values = [name.trim(), email.trim().toLowerCase(), hashedPassword]
 
-  db.query(sql, values, (err, result) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(409).json({ message: 'Email already exists' })
+    db.query(sql, values, (err, result) => {
+      if (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+          return res.status(409).json({ message: 'Email already exists' })
+        }
+        console.error(err)
+        return res.status(500).json({ message: 'Internal server error' })
       }
-      console.error(err)
-      return res.status(500).json({ message: 'Internal server error' })
-    }
-    res.status(201).json({message: 'User registered successfully', user: { id: result.insertId, name: name.trim(), email: email.trim().toLowerCase() } })
-  })
-} catch (err) {
-  console.error('Error registering user:', err)
-  res.status(500).json({ message: 'Internal server error' })
-}
+      res.status(201).json({
+        message: 'User registered successfully',
+        user: { id: result.insertId, name: name.trim(), email: email.trim().toLowerCase() },
+      })
+    })
+  } catch (err) {
+    console.error('Error registering user:', err)
+    res.status(500).json({ message: 'Internal server error' })
+  }
 })
 
 app.post('/api/login', async (req, res) => {
@@ -162,7 +176,11 @@ app.post('/api/login', async (req, res) => {
         return res.status(401).json({ message: 'Invalid email or password' })
       }
       const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' })
-      res.json({ message: 'Login successful', token, user: { id: user.id, name: user.name, email: user.email } })
+      res.json({
+        message: 'Login successful',
+        token,
+        user: { id: user.id, name: user.name, email: user.email },
+      })
     })
   } catch (err) {
     console.error('Error logging in:', err)

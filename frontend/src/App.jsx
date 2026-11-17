@@ -3,6 +3,7 @@ import './App.css'
 
 function App() {
   const [title, setTitle] = useState('')
+  const [showTaskModal, setShowTaskModal] = useState(false)
   const [description, setDescription] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [tasks, setTasks] = useState([])
@@ -15,6 +16,7 @@ function App() {
   const [authName, setAuthName] = useState('')
   const [authEmail, setAuthEmail] = useState('')
   const [authPassword, setAuthPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [token, setToken] = useState(sessionStorage.getItem('token'))
   const [authMessage, setAuthMessage] = useState('')
   const [taskMessage, setTaskMessage] = useState('')
@@ -27,8 +29,8 @@ function App() {
 
     async function fetchUser() {
       try {
-        const response = await fetch('http://localhost:5000/api/me',{
-          headers: { Authorization: `Bearer ${token}` }
+        const response = await fetch('http://localhost:5000/api/me', {
+          headers: { Authorization: `Bearer ${token}` },
         })
         if (response.status === 401 || response.status === 403) {
           handleLogout()
@@ -47,7 +49,10 @@ function App() {
 
     async function fetchTasks() {
       try {
-        const response = await fetch('http://localhost:5000/api/tasks', { method: 'GET', headers: { Authorization: `Bearer ${token}` } })
+        const response = await fetch('http://localhost:5000/api/tasks', {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        })
         if (response.status === 401 || response.status === 403) {
           handleLogout()
           return
@@ -72,13 +77,16 @@ function App() {
     setAuthMessage('')
 
     const endpoint = authMode === 'register' ? 'api/register' : 'api/login'
-    const requestBody = authMode === 'register' ? { name: authName, email: authEmail, password: authPassword } : { email: authEmail, password: authPassword }
-    
+    const requestBody =
+      authMode === 'register'
+        ? { name: authName, email: authEmail, password: authPassword }
+        : { email: authEmail, password: authPassword }
+
     try {
       const response = await fetch(`http://localhost:5000/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       })
       const data = await response.json()
       if (!response.ok) {
@@ -95,10 +103,14 @@ function App() {
         setUser(data.user)
         setAuthPassword('')
         setAuthMessage('Login successful!')
-      } 
+      }
     } catch (error) {
-        console.error('Authentication error:', error)
-        setAuthMessage(error.message === 'Failed to fetch' ? 'Unable to connect to server. Please try again later.' : error.message)
+      console.error('Authentication error:', error)
+      setAuthMessage(
+        error.message === 'Failed to fetch'
+          ? 'Unable to connect to server. Please try again later.'
+          : error.message
+      )
     } finally {
       setAuthLoading(false)
     }
@@ -127,14 +139,14 @@ function App() {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             title: title,
             description: description,
             dueDate: dueDate,
-            status: currentTask.status
-          })
+            status: currentTask.status,
+          }),
         })
         if (!response.ok) {
           throw new Error(`Failed to update task:`)
@@ -156,9 +168,9 @@ function App() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ title: title, description: description, dueDate: dueDate })
+          body: JSON.stringify({ title: title, description: description, dueDate: dueDate }),
         })
         if (!response.ok) {
           throw new Error(`Failed to add task:`)
@@ -176,6 +188,7 @@ function App() {
     setTitle('')
     setDescription('')
     setDueDate('')
+    setShowTaskModal(false)
   }
 
   async function toggleTaskStatus(taskId) {
@@ -187,14 +200,14 @@ function App() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title: currentTask.title,
           description: currentTask.description,
           dueDate: currentTask.dueDate,
-          status: updatedStatus
-        })
+          status: updatedStatus,
+        }),
       })
       if (!response.ok) {
         throw new Error(`Failed to update task status`)
@@ -202,7 +215,6 @@ function App() {
       const updatedTask = await response.json()
       setTasks((previousTasks) =>
         previousTasks.map((task) => (task.id === taskId ? updatedTask : task))
-      
       )
       setTaskMessage('Task status updated successfully!')
     } catch (error) {
@@ -217,8 +229,8 @@ function App() {
       const response = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       })
       if (!response.ok) {
         throw new Error(`Failed to delete task:`)
@@ -229,7 +241,6 @@ function App() {
       console.error('Error deleting task:', error)
       setTaskMessage('Failed to delete task.')
     }
-  
   }
 
   function editTask(task) {
@@ -237,6 +248,7 @@ function App() {
     setDescription(task.description)
     setDueDate(task.dueDate)
     setEditingTaskId(task.id)
+    setShowTaskModal(true)
   }
 
   function cancelEditing() {
@@ -279,7 +291,8 @@ function App() {
     .filter((task) => {
       const matchesFilter = filter === 'All' || task.status === filter
       const matchesSearch =
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) || (task.description || '').toLowerCase().includes(searchTerm.toLowerCase())
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (task.description || '').toLowerCase().includes(searchTerm.toLowerCase())
 
       return matchesFilter && matchesSearch
     })
@@ -293,239 +306,274 @@ function App() {
     })
 
   if (!token) {
-  return (
-    <div className="app">
-      <header>
-        <h1>Personal Task Manager</h1>
-        <p>Organise your tasks and stay productive.</p>
-      </header>
+    return (
+      <div className="app auth-page">
+        <header className="dashboard-header auth-header">
+          <div className="header-title">
+            <h1>PERSONAL TASK MANAGER</h1>
+            <p>Organise your tasks and stay productive.</p>
+          </div>
+        </header>
 
-      <main>
-        <section className="add-task">
-          <h2>
-            {authMode === 'login' ? 'Login' : 'Create an Account'}
-          </h2>
+        <main className="auth-main">
+          <section className="auth-card">
+            <div className="auth-card-header">
+              <h2>{authMode === 'login' ? 'Welcome Back!' : 'Create Your Account'}</h2>
+              <p>
+                {authMode === 'login'
+                  ? 'Login to continue managing your tasks.'
+                  : 'Register to start organising your tasks.'}
+              </p>
+            </div>
 
-          <form onSubmit={handleAuthSubmit}>
-            {authMode === 'register' && (
+            <form onSubmit={handleAuthSubmit}>
+              {authMode === 'register' && (
+                <div className="form-group">
+                  <label>Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your name"
+                    value={authName}
+                    onChange={(event) => setAuthName(event.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
               <div className="form-group">
-                <label>Name</label>
+                <label>Email</label>
                 <input
-                  type="text"
-                  placeholder="Enter your name"
-                  value={authName}
-                  onChange={(event) => setAuthName(event.target.value)}
+                  type="email"
+                  placeholder="Enter your email"
+                  value={authEmail}
+                  onChange={(event) => setAuthEmail(event.target.value)}
                   required
                 />
               </div>
-            )}
 
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={authEmail}
-                onChange={(event) => setAuthEmail(event.target.value)}
-                required
-              />
+              <div className="form-group">
+                <label>Password</label>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={authPassword}
+                  onChange={(event) => setAuthPassword(event.target.value)}
+                  required
+                />
+              </div>
+
+              <button
+                type="button"
+                className="show-password-btn"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? 'Hide Password' : 'Show Password'}
+              </button>
+
+              <button type="submit" disabled={authLoading}>
+                {authLoading ? 'Please wait...' : authMode === 'login' ? 'Login' : 'Register'}
+              </button>
+            </form>
+
+            {authMessage && <p className="auth-message">{authMessage}</p>}
+
+            <div className="auth-switch">
+              <p>{authMode === 'login' ? "Don't have an account?" : 'Already have an account?'}</p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode(authMode === 'login' ? 'register' : 'login')
+                  setAuthMessage('')
+                }}
+              >
+                {authMode === 'login' ? 'Register here' : 'Login here'}
+              </button>
             </div>
+          </section>
+        </main>
+      </div>
+    )
+  }
 
-            <div className="form-group">
-              <label>Password</label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                value={authPassword}
-                onChange={(event) => setAuthPassword(event.target.value)}
-                required
-              />
-            </div>
-
-            <button type="submit" disabled={authLoading}>
-              {authLoading
-                ? 'Please wait...'
-                : authMode === 'login'
-                  ? 'Login'
-                  : 'Register'}
-            </button>
-          </form>
-
-          {authMessage && <p>{authMessage}</p>}
-
-          <p>
-            {authMode === 'login'
-              ? "Don't have an account?"
-              : 'Already have an account?'}
-          </p>
-
-          <button
-            type="button"
-            onClick={() => {
-              setAuthMode(authMode === 'login' ? 'register' : 'login')
-              setAuthMessage('')
-            }}
-          >
-            {authMode === 'login' ? 'Register here' : 'Login here'}
+  return (
+    <div className="app">
+      <header className="dashboard-header">
+        <div className="header-title">
+          <h1>PERSONAL TASK MANAGER</h1>
+          <p>Welcome, {user?.name}!</p>
+        </div>
+        <div className="header-actions">
+          <button type="button" onClick={handleLogout} className="logout-btn">
+            Logout
           </button>
+        </div>
+        {taskMessage && <p className="task-message">{taskMessage}</p>}
+      </header>
+
+      <main>
+        {showTaskModal && (
+          <div className="modal-overlay">
+            <section className="add-task modal-content">
+              <div className="modal-header">
+                <h2>{editingTaskId ? 'Edit Task' : 'Add a New Task'}</h2>
+
+                <button
+                  type="button"
+                  className="modal-close-btn"
+                  onClick={() => setShowTaskModal(false)}
+                >
+                  ×
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label>Task Title</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your task"
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea
+                    placeholder="Enter task details (optional)"
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Due Date</label>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(event) => setDueDate(event.target.value)}
+                  />
+                </div>
+
+                <button type="submit">{editingTaskId ? 'Update Task' : 'Add Task'}</button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    cancelEditing()
+                    setShowTaskModal(false)
+                  }}
+                >
+                  Cancel
+                </button>
+              </form>
+            </section>
+          </div>
+        )}
+
+        <section className="overview-section">
+          <div className="overview-header">
+            <h2>Your Overview</h2>
+
+            <button type="button" className="add-task-btn" onClick={() => setShowTaskModal(true)}>
+              +
+            </button>
+          </div>
+
+          <div className="task-stats">
+            <div className="stat-card total-card">
+              <h3>{totalTasks}</h3>
+              <p>Total Tasks</p>
+            </div>
+
+            <div className="stat-card completed-card">
+              <h3>{completedTasks}</h3>
+              <p>Completed</p>
+            </div>
+
+            <div className="stat-card pending-card">
+              <h3>{pendingTasks}</h3>
+              <p>Pending</p>
+            </div>
+          </div>
+        </section>
+        <section className="task-list">
+          <h2>My Tasks ({tasks.length})</h2>
+
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+          </div>
+
+          <div className="task-filters">
+            <button
+              type="button"
+              className={filter === 'All' ? 'active' : ''}
+              onClick={() => setFilter('All')}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              className={filter === 'Pending' ? 'active' : ''}
+              onClick={() => setFilter('Pending')}
+            >
+              Pending
+            </button>
+            <button
+              type="button"
+              className={filter === 'Completed' ? 'active' : ''}
+              onClick={() => setFilter('Completed')}
+            >
+              Completed
+            </button>
+          </div>
+
+          {tasks.length === 0 ? (
+            <p>No tasks available. Add a new task to get started!</p>
+          ) : filteredTasks.length === 0 ? (
+            <p>No tasks match your search or filter criteria.</p>
+          ) : (
+            <div className="task-grid">
+              {filteredTasks.map((task) => (
+                <div className="task-item" key={task.id}>
+                  <h3>{task.title}</h3>
+
+                  <p>{task.description}</p>
+
+                  <p>Created: {new Date(task.createdAt).toLocaleDateString()}</p>
+
+                  <p>Deadline: {getDeadlineText(task)}</p>
+
+                  <p>Status: {task.status}</p>
+
+                  <div className="task-actions">
+                    <button type="button" onClick={() => deleteTask(task.id)}>
+                      Delete
+                    </button>
+
+                    <button type="button" onClick={() => editTask(task)}>
+                      Edit
+                    </button>
+
+                    <button type="button" onClick={() => toggleTaskStatus(task.id)}>
+                      {task.status === 'Pending' ? 'Mark as Completed' : 'Mark as Pending'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>
   )
-}
-
-return (
-  <div className="app">
-    <header className="dashboard-header">
-      <div className="header-title">
-        <h1>PERSONAL TASK MANAGER</h1>
-        <p>Welcome, {user?.name}!</p>
-      </div>
-      <div className="header-actions">
-        <button type="button" onclick={handleLogout} className="logout-btn">
-          Logout
-        </button>
-      </div>
-      {taskMessage && (<p className="task-message">{taskMessage}</p>)}
-    </header>
-
-    <main>
-      <section className="add-task">
-        <h2>{editingTaskId ? 'Edit Task' : 'Add a New Task'}</h2>
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Task Title</label>
-            <input
-              type="text"
-              placeholder="Enter your task"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              placeholder="Enter task details (optional)"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Due Date</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(event) => setDueDate(event.target.value)}
-            />
-          </div>
-
-          <button type="submit">{editingTaskId ? 'Update Task' : 'Add Task'}</button>
-          {editingTaskId && (
-            <button type="button" onClick={cancelEditing}>
-              Cancel
-            </button>
-          )}
-        </form>
-      </section>
-
-      <section className="task-list">
-        <div className="task-stats">
-          <div>
-            <h3>{totalTasks}</h3>
-            <p>Total Tasks</p>
-          </div>
-          <div>
-            <h3>{completedTasks}</h3>
-            <p>Completed</p>
-          </div>
-          <div>
-            <h3>{pendingTasks}</h3>
-            <p>Pending</p>
-          </div>
-        </div>
-        <h2>My Tasks ({tasks.length})</h2>
-
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search tasks..."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-        </div>
-
-        <div className="task-filters">
-          <button
-            type="button"
-            className={filter === 'All' ? 'active' : ''}
-            onClick={() => setFilter('All')}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            className={filter === 'Pending' ? 'active' : ''}
-            onClick={() => setFilter('Pending')}
-          >
-            Pending
-          </button>
-          <button
-            type="button"
-            className={filter === 'Completed' ? 'active' : ''}
-            onClick={() => setFilter('Completed')}
-          >
-            Completed
-          </button>
-        </div>
-        
-        {tasks.length === 0 ? (
-          <p>No tasks available. Add a new task to get started!</p>
-        ) : filteredTasks.length === 0 ? (
-          <p>No tasks match your search or filter criteria.</p>
-        ) : (
-          filteredTasks.map((task) => (
-            <div className="task-item" key={task.id}>
-              <h3>{task.title}</h3>
-              <p>{task.description}</p>
-              <p>Created: {new Date(task.createdAt).toLocaleDateString()}</p>
-              <p>
-                Deadline: {getDeadlineText(task)}
-              </p>
-              <p>Status: {task.status}</p>
-
-              <button
-                type="button"
-                onClick={() => deleteTask(task.id)}
-              >
-                Delete
-              </button>
-
-              <button
-                type="button"
-                onClick={() => editTask(task)}
-              >
-                Edit
-              </button>
-
-              <button
-                type="button"
-                onClick={() => toggleTaskStatus(task.id)}
-              >
-                {task.status === 'Pending' ? 'Mark as Completed' : 'Mark as Pending'}
-              </button>
-
-
-            </div>
-          ))
-        )}
-      </section>
-    </main>
-  </div>
-)
 }
 
 export default App
